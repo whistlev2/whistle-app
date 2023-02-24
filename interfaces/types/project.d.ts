@@ -55,9 +55,9 @@ interface MessagingSettingsType {
 }
 
 interface WebSettingsType {
-    image: string;
-    colour: string;
-    errorLink: string;
+    image?: string;
+    colour?: string;
+    errorLink?: string;
 }
 
 interface ProjectType {
@@ -72,6 +72,7 @@ interface ProjectType {
 
 interface MessagingProjectType extends ProjectType {
     settings: MessagingSettingsType;
+    type: 'sms' | 'mms';
 }
 
 export {
