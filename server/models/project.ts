@@ -5,7 +5,7 @@ import { ProjectType } from '../../interfaces/types/index';
 
 export interface ProjectModelType extends ProjectType, Document {}
 
-//TODO: Add validation
+//TODO: Flesh out schema
 const ProjectSchema: Schema = new Schema(
     {
         title: { type: String, required: true },

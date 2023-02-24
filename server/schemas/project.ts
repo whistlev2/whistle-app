@@ -1,16 +1,6 @@
 import Joi from 'joi';
 import { ProjectType } from '../../interfaces/types';
 
-/*
-
-interface SectionType {
-    type: 'section';
-    title: string;
-    body: Array<SectionBodyType>;
-    show: ConditionType[];
-}
-*/
-
 let actionSchema = {
     operation: Joi.string().valid('set', 'jump', 'send').required(),
     arguments: Joi.array().items(Joi.string()).required()
@@ -64,7 +54,10 @@ let webSettingsSchema = {
 
 let messagingSettingsSchema = {
     keywords: Joi.object().pattern(Joi.string(), actionSchema),
+    errorMessage: Joi.string(),
+    parsingErrorMessage: Joi.string()
 };
+
 
 let projectSchema = {
     title: Joi.string().required(),

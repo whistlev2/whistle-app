@@ -36,12 +36,11 @@ function getViewIndex(ref: string, sections: Array<SectionBodyType>): number {
 }
 
 async function createProject(project: ProjectType) {
-    try {
-        let ret = await ProjectModel.create(project);
-        return ret;
-    } catch (err) {
-        console.error('Error creating project'); //TODO: Handle differently
+    let ret = await ProjectModel.create(project);
+    if (!ret) {
+        throw new Error('Error creating project');
     }
+    return ret;
 }
 
 async function getProject(projectID: string) {
