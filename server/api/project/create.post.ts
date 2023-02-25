@@ -1,8 +1,6 @@
 import ProjectServices from '../../services/project';
 import ProjectSchema from '../../schemas/project';
 
-import Joi from 'joi';
-
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
     const project = body?.project;
@@ -33,7 +31,7 @@ export default defineEventHandler(async (event) => {
         let createdProject = await ProjectServices.createProject(value);
         return createdProject;
     } catch (err: any) {
-        if (err && (err.code === 11000)) {
+        if (err && err.code === 11000) {
             throw createError({
                 statusCode: 409,
                 message: 'Conflict - a project with these keys already exists' //TODO: Only expose this in dev mode

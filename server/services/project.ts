@@ -40,7 +40,7 @@ async function createProject(project: ProjectType) {
     if (!ret) {
         throw new Error('Error creating project');
     }
-    return ret;
+    return getProjectObject(ret);
 }
 
 async function getProject(projectID: string) {
@@ -53,52 +53,31 @@ async function getProject(projectID: string) {
 }
 
 async function getProjectFromAbbreviation(abbreviation: string) {
-    try {
-        let project = await ProjectModel.findOne({ abbreviation: abbreviation });
-        if (project) {
-            return project;
-        } else {
-            return null;
-        }
-    } catch (err) {
-        console.error('Error getting project'); //TODO: Handle differently
-        console.error(err);
-    }
+    let project = await ProjectModel.findOne({ abbreviation: abbreviation });
+    return getProjectObject(project);
 }
 
-async function updateProject(projectID: string, updatedProject: ProjectType) {
-    try {
-        let project = await ProjectModel.findById(projectID);
-        if (project) {
-            console.log('FORM', project);
-            console.log('UPDA', updatedProject);
-            project.set(updatedProject);
-            await project.save();
-            return project;
-        } else {
-            return null;
-        }
-    } catch (err) {
-        console.error(err);
-        console.error('Error updating project'); //TODO: Handle differently
-        throw err;
+async function updateProject(updatedProject: ProjectType) {
+    let project = await ProjectModel.findOne({ abbreviation: updatedProject.abbreviation });
+
+    if (!project) {
+        throw createError({
+            statusCode: 404,
+            message: 'Not found - project not found'
+        })
     }
+
+    project.set(updatedProject);
+    await project.save();
+    return getProjectObject(project);
 }
 
-async function deleteProject(projectID: string) {
-    try {
-        let project = await ProjectModel.findById(projectID);
-        if (project) {
-            await project.remove();
-            return project;
-        } else {
-            return null;
-        }
-    } catch (err) {
-        console.error('Error deleting project'); //TODO: Handle differently
-    }
+async function deleteProjectFromAbbreviation(abbreviation: string) {
+    let project = await ProjectModel.findOneAndDelete({ abbreviation: abbreviation });
+    return getProjectObject(project);
 }
 
+//TODO: Move action/validation/condition logic to session services? or another file?
 function checkValidation(input: string, validation: ValidationType) {
     switch (validation.type) {
         case 'required':
@@ -234,13 +213,28 @@ function getViewText(view: ViewType) {
     }
 }
 
+function getProjectObject(project: ProjectType | null) : ProjectType | null {
+    if (!project) {
+        return null;
+    }
+    return {
+        title: project.title,
+        sections: project.sections,
+        abbreviation: project.abbreviation,
+        type: project.type,
+        published: project.published,
+        settings: project.settings,
+        finalView: project.finalView
+    };
+}
+
 export default {
     createProject,
     getSectionViews,
     getProject,
     getProjectFromAbbreviation,
     updateProject,
-    deleteProject,
+    deleteProjectFromAbbreviation,
     validateInput,
     performAction,
     meetsAllConditions,
