@@ -58,18 +58,12 @@ function validMessagingSession(session: SessionModelType): asserts session is Me
 }
 
 async function getMessagingSession(sessionID: string) {
-    try {
-        let session = await getSession(sessionID);
-        if (session) {
-            validMessagingSession(session);
-            return session;
-        } else {
-            return null;
-        }
-    } catch (err) {
-        console.error(err);
-        console.error('Not a valid messaging section'); //TODO: Handle differently
+    let session = await getSession(sessionID);
+    if (!session) {
+        return null;
     }
+    validMessagingSession(session);
+    return session;
 }
 
 export default {

@@ -52,8 +52,13 @@ async function getProject(projectID: string) {
     }
 }
 
-async function getProjectFromAbbreviation(abbreviation: string) {
+async function getProjectModelFromAbbreviation(abbreviation: string) {
     let project = await ProjectModel.findOne({ abbreviation: abbreviation });
+    return project;
+}
+
+async function getProjectFromAbbreviation(abbreviation: string) {
+    let project = await getProjectModelFromAbbreviation(abbreviation);
     return getProjectObject(project);
 }
 
@@ -232,6 +237,7 @@ export default {
     createProject,
     getSectionViews,
     getProject,
+    getProjectModelFromAbbreviation,
     getProjectFromAbbreviation,
     updateProject,
     deleteProjectFromAbbreviation,

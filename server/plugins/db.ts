@@ -13,7 +13,7 @@ export default defineNitroPlugin(async (_nitroApp) => {
     try {
         mongoose.set('strictQuery', true);
         await mongoose.connect(MONGO_URI);
-        console.log('Connected to database'); //TODO: Logging
+        console.info('Connected to database'); //TODO: Logging
     } catch (error) {
         console.error('Error connecting to database', error); //TODO: Error handling
     }
