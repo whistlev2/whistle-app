@@ -1,5 +1,5 @@
-import ProjectServices from '../../services/project';
-import ProjectSchema from '../../schemas/project';
+import ProjectServices from '../../../services/project';
+import ProjectSchema from '../../../schemas/project';
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);

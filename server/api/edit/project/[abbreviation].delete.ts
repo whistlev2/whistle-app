@@ -1,4 +1,4 @@
-import ProjectServices from '../../services/project';
+import ProjectServices from '../../../services/project';
 
 export default defineEventHandler(async (event) => {
     if (!event.context.params?.abbreviation) {

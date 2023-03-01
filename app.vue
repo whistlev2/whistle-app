@@ -1,5 +1,6 @@
 <template>
-  <div>
-    <h1>The Whistle</h1>
-  </div>
+  <NuxtLayout>
+    <!--  TODO: Add navbar -->
+    <NuxtPage/>
+  </NuxtLayout>
 </template>

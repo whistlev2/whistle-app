@@ -1,7 +1,7 @@
-import SessionServices from '../../../services/session';
-import ProjectServices from '../../../services/project';
-import MessagingServices from '../../../services/messaging';
-import IncomingMessageSchema from '../../../schemas/incomingMessage';
+import SessionServices from '../../../../services/session';
+import ProjectServices from '../../../../services/project';
+import MessagingServices from '../../../../services/messaging';
+import IncomingMessageSchema from '../../../../schemas/incomingMessage';
 
 export default defineEventHandler(async (event) => {
     try {
