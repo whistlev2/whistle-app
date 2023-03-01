@@ -9,6 +9,7 @@
     "ngrok": "ngrok http 3000"
   },
   "devDependencies": {
+    "@nuxt/devtools": "^0.2.5",
     "ngrok": "^4.3.3",
     "nuxt": "^3.2.2"
   },
