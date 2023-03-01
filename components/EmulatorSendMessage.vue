@@ -1,5 +1,4 @@
 <template>
-<v-form>
     <v-text-field
         v-model="message"
         append-icon="mdi-send"
@@ -10,14 +9,13 @@
         type="text"
         @click:append="sendMessage"
         @click:clear="clearMessage"
+        @keyup.enter="sendMessage"
     ></v-text-field>
-    </v-form>
 </template>
 <script setup>
 const message = ref('');
 const emits = defineEmits(['sendMessage']);
-function sendMessage(event) {
-    console.log(event)
+function sendMessage() {
     if (message.value) {
         emits('sendMessage', message.value);
         message.value = '';
