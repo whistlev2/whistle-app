@@ -1,5 +1,6 @@
 <template>
     <h1>Messaging Emulator - {{ project.title }}</h1>
+    <v-btn @click="restartConversation">Restart Conversation</v-btn>
     <div v-for="message in messages">
         <EmulatorMessage :message="message" />
     </div>
@@ -31,6 +32,12 @@
             statusCode: 404,
             message: `Project ${abbreviation} not found`
         });
+    }
+
+    function restartConversation() {
+        messages.value = [];
+        const sessionCookie = useCookie('session');
+        sessionCookie.value = null;
     }
 
     async function getProject(abbreviation: string) {
