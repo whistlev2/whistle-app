@@ -53,7 +53,7 @@ async function deleteSession(sessionID: string) {
 
 function validMessagingSession(session: SessionModelType): asserts session is MessagingSessionModelType {
     if (session.project.type === 'web') {
-        throw new Error('Invalid session type');
+        throw createError('Invalid session type');
     }
 }
 

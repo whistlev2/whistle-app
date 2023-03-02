@@ -38,7 +38,7 @@ function getViewIndex(ref: string, sections: Array<SectionBodyType>): number {
 async function createProject(project: ProjectType) {
     let ret = await ProjectModel.create(project);
     if (!ret) {
-        throw new Error('Error creating project');
+        throw createError('Error creating project');
     }
     return getProjectObject(ret);
 }
@@ -97,7 +97,6 @@ function checkValidation(input: string, validation: ValidationType) {
 }
 
 function validateInput(input: string, definition: InputType) {
-    console.info('Validating input: ' + input + ' against definition: ' + JSON.stringify(definition));
     for (let i = 0; i < definition.validations.length; i++) {
         if (!checkValidation(input, definition.validations[i])) {
             return {

@@ -5,7 +5,7 @@ export default defineNitroPlugin(async (_nitroApp) => {
     const MONGO_PASSWORD = process.env.MONGO_PASSWORD;
     const MONGO_HOST = process.env.MONGO_HOST;
     if (!MONGO_USERNAME || !MONGO_PASSWORD || !MONGO_HOST) {
-        throw new Error('No database credentials found');
+        throw createError('No database credentials found');
     }
     //TODO: Docker
     const MONGO_URI = `mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}`; //TODO: Check srv

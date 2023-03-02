@@ -7,19 +7,12 @@ export default defineEventHandler(async (event) => {
             message: 'Bad Request - no project abbreviation provided'
           })
     }
-    try {
-        let project = await ProjectServices.getProjectFromAbbreviation(event.context.params?.abbreviation)
-        if (!project) {
-            throw createError({
-                statusCode: 404,
-                message: 'Not Found - project not found'
-            })
-        }
-        return project;
-    } catch (err: any) {
+    let project = await ProjectServices.getProjectFromAbbreviation(event.context.params?.abbreviation)
+    if (!project) {
         throw createError({
-            statusCode: 500,
-            message: `Internal Server Error - could not get project.`
-        });
+            statusCode: 404,
+            message: 'Not Found - project not found'
+        })
     }
+    return project;
 });

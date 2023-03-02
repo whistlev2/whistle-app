@@ -45,7 +45,7 @@ async function getNextMessages(session: MessagingSessionModelType): Promise<{ me
     let messages: Array<string> = [];
     if (!report) {
         console.error('Report not found');
-        throw new Error('Report not found');
+        throw createError('Report not found');
     }
     let showMessage = false;
     for (let i = session.cursor; i < views.length; i++) {
@@ -101,7 +101,7 @@ async function processResponse(message: string, input: InputType, session: Messa
     }
     let updatedSession = await SessionServices.getMessagingSession(session._id);
     if (!updatedSession) {
-        throw new Error('Could not get session');
+        throw createError('Could not get session');
     }
     session = updatedSession;
     let nextMessageInfo = await getNextMessages(session);
@@ -113,8 +113,8 @@ async function processResponse(message: string, input: InputType, session: Messa
 
 async function handleMessage(message: string, session: MessagingSessionModelType) {
     try {
-        //TODO: Handle keywords
         let sessionCompleted = false;
+        //TODO: Resend last message after keyword?
         let action = session.project.settings.keywords[message.trim().toLowerCase()];
         if (action) {
             let { messages } = await ProjectServices.performAction(action, message, session);
@@ -161,10 +161,10 @@ async function handleMessage(message: string, session: MessagingSessionModelType
 
 function isValidMessagingSessionModel(session: SessionModelType | undefined): asserts session is MessagingSessionModelType {
     if (!session) {
-        throw new Error('No session found');
+        throw createError('No session found');
     }
     if (!session.messages) {
-        throw new Error('Invalid session type');
+        throw createError('Invalid session type');
     }
 }
 
@@ -183,7 +183,7 @@ async function startSession(message: any, project: ProjectModelType) {
     });
     if (!report) {
         console.error('Report not created');
-        throw new Error('Report not created');
+        throw createError('Report not created');
     }
     let session = await SessionServices.createSession({
         active: [report._id],
@@ -194,11 +194,11 @@ async function startSession(message: any, project: ProjectModelType) {
     });
 
     if (!session) {
-        throw new Error('Could not create session');
+        throw createError('Could not create session');
     }
 
     if (!session.messages) {
-        throw new Error('Could not get messages');
+        throw createError('Could not get messages');
     }
     //TODO: Separate session creation function?
     isValidMessagingSessionModel(session);

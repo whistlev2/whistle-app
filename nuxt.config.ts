@@ -4,5 +4,8 @@ export default defineNuxtConfig({
     build: {
         transpile: ['vuetify']
     },
-    modules: [ '@nuxt/devtools' ]
+    modules: [ '@nuxt/devtools' ],
+    typescript: {
+        strict: true
+    }
 })

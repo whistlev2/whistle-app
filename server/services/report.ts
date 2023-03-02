@@ -68,11 +68,11 @@ async function addToField(reportID: string | Schema.Types.ObjectId, field: strin
             report = await updateReport(reportID, report);
             return report;
         } else {
-            throw new Error('Could not find report');
+            throw createError('Could not find report');
         }
     } catch (err) {
         console.error(err);
-        throw new Error('Could not add field'); //TODO: Handle differently
+        throw createError('Could not add field'); //TODO: Handle differently
     }
 }
 
