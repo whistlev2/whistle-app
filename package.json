@@ -10,6 +10,8 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "^0.2.5",
+    "@nuxt/types": "^2.16.0",
+    "h3": "^1.5.0",
     "ngrok": "^4.3.3",
     "nuxt": "^3.2.2"
   },

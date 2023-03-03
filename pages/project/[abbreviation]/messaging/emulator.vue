@@ -83,7 +83,7 @@ function timeout(ms: number) {
 }
 async function sendMessage(outgoingMessage: string) {
     let { data, error } = await useFetch(
-        `/api/edit/messaging/webhook/${route.params.abbreviation}`,
+        `/api/edit/messaging/webhook/${route.params.abbreviation}/test`,
         {
             method: "POST",
             body: {
@@ -95,6 +95,7 @@ async function sendMessage(outgoingMessage: string) {
 
     if (error?.value) {
         pageErrors.value.push(error.value);
+        //TODO: Create and show error modal
         return;
     }
     messages.value.push({
