@@ -1,6 +1,11 @@
 <template>
-    <h1>Messaging Emulator - {{ project.title }}</h1>
-    <v-btn @click="restartConversation">Restart Conversation</v-btn>
+    <h1>
+        Messaging Emulator - {{ project.title
+        }}<v-btn id="restartButton" @click="restartConversation"
+            >Restart Conversation</v-btn
+        >
+    </h1>
+
     <v-divider />
     <div class="messages" ref="messagesDiv">
         <div v-for="message in messages">
@@ -125,5 +130,9 @@ async function sendMessage(outgoingMessage: string) {
     overflow-y: scroll;
     margin: auto;
     width: 80%;
+}
+
+#restartButton {
+    margin-left: 10px;
 }
 </style>
