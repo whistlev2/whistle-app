@@ -1,15 +1,17 @@
-import { Schema } from 'mongoose';
-import ProjectType, { ViewType, MessagingProjectType } from './project';
-
+import { Schema } from "mongoose";
+import ProjectType, { ViewType, MessagingProjectType } from "./project";
+import FieldType from "./field";
 type MessageType = ViewType | string;
 
 interface SessionType {
-    active: Schema.Types.ObjectId[]; //rename to reports
-    current: Schema.Types.ObjectId;
+    reports: Schema.Types.ObjectId[]; //rename to reports
+    activeReport?: Schema.Types.ObjectId;
     expires?: Date;
     project: ProjectType;
     messages?: Array<MessageType>;
     cursor: number;
+    fields?: { [key: string]: FieldType };
+    test: boolean;
 }
 
 interface MessagingSessionType extends SessionType {

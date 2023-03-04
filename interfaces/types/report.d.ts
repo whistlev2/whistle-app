@@ -1,11 +1,5 @@
-import { Schema } from 'mongoose';
-
-import ViewType from './project';
-
-interface FieldType {
-    value: string;
-    view?: ViewType;
-}
+import { Schema } from "mongoose";
+import FieldType from "./field";
 
 interface ReportType {
     fields: { [key: string]: FieldType };
@@ -13,10 +7,10 @@ interface ReportType {
     test: boolean;
     timestamp: Date;
     assigned?: Schema.Types.ObjectId;
-    project: Schema.Types.ObjectId;
+    projectRef: string;
     tags: string[];
 }
 
-export { FieldType, ReportType };
+export { ReportType };
 
 export default ReportType;

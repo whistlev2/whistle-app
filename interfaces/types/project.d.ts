@@ -1,21 +1,21 @@
 interface ConditionType {
-    operation: 'equals' | 'contains' | 'includes';
+    operation: "equals" | "contains" | "includes";
     arguments: string[];
 }
 
 interface ActionType {
-    operation: 'set' | 'jump' | 'send';
+    operation: "set" | "jump" | "send";
     arguments: string[];
 }
 
 interface ValidationType {
-    type: 'required' | 'regex' | 'is';
+    type: "required" | "regex" | "is";
     arguments?: string[];
 }
 
 //TODO: Make separate types for each input type
 interface InputType {
-    type: 'text' | 'multiple';
+    type: "text" | "multiple";
     actions: ActionType[];
     options?: string[];
     allowOther?: boolean;
@@ -33,7 +33,7 @@ interface CustomBodyType {
 
 interface ViewType {
     ref: string;
-    type: 'text' | 'custom';
+    type: "text" | "custom";
     input?: InputType;
     body: TextBodyType | CustomBodyType;
     show: ConditionType[];
@@ -42,7 +42,8 @@ interface ViewType {
 type SectionBodyType = SectionType | ViewType; //TODO: This isn't clean
 
 interface SectionType {
-    type: 'section';
+    ref: string;
+    type: "section";
     title: string;
     body: Array<SectionBodyType>;
     show: ConditionType[];
@@ -52,27 +53,28 @@ interface MessagingSettingsType {
     keywords: { [key: string]: ActionType };
     errorMessage: string;
     parsingErrorMessage: string;
+    published: boolean;
+    finalView: ViewType;
 }
 
 interface WebSettingsType {
     image?: string;
     colour?: string;
     errorLink?: string;
+    published: boolean;
 }
 
 interface ProjectType {
     title: string;
     sections: SectionBodyType[];
-    abbreviation: string;
-    type: 'web' | 'sms' | 'mms';
-    published: boolean;
+    ref: string;
+    type: "web" | "sms" | "mms";
     settings: WebSettingsType | MessagingSettingsType;
-    finalView: ViewType;
 }
 
 interface MessagingProjectType extends ProjectType {
     settings: MessagingSettingsType;
-    type: 'sms' | 'mms';
+    type: "sms" | "mms";
 }
 
 export {

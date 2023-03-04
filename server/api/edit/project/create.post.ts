@@ -1,5 +1,5 @@
-import ProjectServices from '../../../services/project';
-import ProjectSchema from '../../../schemas/project';
+import ProjectServices from "~~/server/services/project";
+import ProjectSchema from "~~/server/schemas/project";
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     if (!project) {
         throw createError({
             statusCode: 400,
-            message: 'Bad Request - no project provided'
+            message: "Bad Request - no project provided"
         });
     }
 
@@ -16,17 +16,17 @@ export default defineEventHandler(async (event) => {
     if (error) {
         throw createError({
             statusCode: 400,
-            message: `Bad Request - project is invalid.\n${error}`, //TODO: Only expose this in dev mode
+            message: `Bad Request - project is invalid.\n${error}` //TODO: Only expose this in dev mode
         });
     }
 
     if (!value) {
         throw createError({
             statusCode: 400,
-            message: 'Bad Request - could not validate project'
+            message: "Bad Request - could not validate project"
         });
     }
-    
+
     try {
         let createdProject = await ProjectServices.createProject(value);
         return createdProject;
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
         if (err && err.code === 11000) {
             throw createError({
                 statusCode: 409,
-                message: 'Conflict - a project with these keys already exists' //TODO: Only expose this in dev mode
+                message: "Conflict - a project with these keys already exists" //TODO: Only expose this in dev mode
             });
         }
         throw createError({

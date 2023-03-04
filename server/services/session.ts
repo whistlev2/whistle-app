@@ -1,13 +1,16 @@
-import { SessionType } from '../../interfaces/types';
-import SessionModel from '../models/session';
-import { SessionModelType, MessagingSessionModelType } from '../models/session';
+import { SessionType } from "~~/interfaces/types";
+import SessionModel from "~~/server/models/session";
+import {
+    SessionModelType,
+    MessagingSessionModelType
+} from "~~/server/models/session";
 
 async function createSession(session: SessionType) {
     try {
         let ret = await SessionModel.create(session);
         return ret;
     } catch (err) {
-        console.error('Error creating session'); //TODO: Handle differently
+        console.error("Error creating session"); //TODO: Handle differently
     }
 }
 
@@ -16,7 +19,7 @@ async function getSession(sessionID: string) {
         let ret = await SessionModel.findById(sessionID);
         return ret;
     } catch (err) {
-        console.error('Error getting session'); //TODO: Handle differently
+        console.error("Error getting session"); //TODO: Handle differently
     }
 }
 
@@ -32,7 +35,7 @@ async function updateSession(sessionID: string, updatedSession: SessionType) {
         }
     } catch (err) {
         console.error(err);
-        console.error('Error updating session'); //TODO: Handle differently
+        console.error("Error updating session"); //TODO: Handle differently
         throw err;
     }
 }
@@ -47,13 +50,15 @@ async function deleteSession(sessionID: string) {
             return null;
         }
     } catch (err) {
-        console.error('Error deleting session'); //TODO: Handle differently
+        console.error("Error deleting session"); //TODO: Handle differently
     }
 }
 
-function validMessagingSession(session: SessionModelType): asserts session is MessagingSessionModelType {
-    if (session.project.type === 'web') {
-        throw createError('Invalid session type');
+function validMessagingSession(
+    session: SessionModelType
+): asserts session is MessagingSessionModelType {
+    if (session.project.type === "web") {
+        throw createError("Invalid session type");
     }
 }
 
@@ -66,11 +71,40 @@ async function getMessagingSession(sessionID: string) {
     return session;
 }
 
+async function addToField(
+    session: SessionModelType | null,
+    field: string,
+    value: any
+) {
+    //TODO: Add view to field
+    //TODO: handle multiple choice fields
+    if (!session) {
+        throw createError("Invalid session");
+    }
+    try {
+        if (!session.fields) {
+            session.fields = {};
+        }
+        if (session.fields[field] && session.fields[field].value) {
+            session.fields[field].value += ";" + value.toString();
+        } else {
+            session.fields[field] = {
+                value: value.toString()
+            };
+        }
+        session = await updateSession(session._id, session);
+        return session;
+    } catch (err) {
+        console.error(err);
+        throw createError("Could not add field"); //TODO: Handle differently
+    }
+}
 export default {
     createSession,
     getSession,
     updateSession,
     deleteSession,
     validMessagingSession,
-    getMessagingSession
+    getMessagingSession,
+    addToField
 };

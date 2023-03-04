@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
-import { ReportType } from '../../interfaces/types/index';
+import { ReportType } from "~~/interfaces/types/index";
 
 export interface ReportModelType extends ReportType, Document {}
 
@@ -20,4 +20,4 @@ const ReportSchema: Schema = new Schema(
     }
 );
 
-export default mongoose.model<ReportModelType>('Report', ReportSchema);
+export default mongoose.model<ReportModelType>("Report", ReportSchema);

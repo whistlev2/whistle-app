@@ -33,16 +33,18 @@ class EMessage implements EMessageType {
 const route = useRoute();
 const messages = ref<EMessageType[]>([]);
 const messagesDiv = ref<HTMLElement | null>(null);
-const abbreviation = Array.isArray(route.params.abbreviation)
-    ? route.params.abbreviation[0]
-    : route.params.abbreviation;
+
+const projectRef = Array.isArray(route.params.project)
+    ? route.params.project[0]
+    : route.params.project;
+
 clearSessionCookie();
-const project = await getProject(abbreviation);
+const project = await getProject(projectRef);
 const pageErrors = ref<Error[]>([]);
 if (!project) {
     throw createError({
         statusCode: 404,
-        message: `Project ${abbreviation} not found`
+        message: `Project ${projectRef} not found`
     });
 }
 
@@ -56,13 +58,21 @@ function restartConversation() {
     clearSessionCookie();
 }
 
-async function getProject(abbreviation: string) {
-    let response = await useFetch(`/api/edit/project/${abbreviation}`);
+async function getProject(projectRef: string) {
+    let response = await useFetch(`/api/edit/project/${projectRef}`);
+    if (response.error?.value) {
+        throw createError({
+            statusCode: 404,
+            message: `Project ${projectRef} not found`
+        });
+    }
     try {
         let project = new Project(response.data.value);
         return project;
     } catch (error) {
-        return null;
+        throw createError({
+            message: `Invalid project ${projectRef}`
+        });
     }
 }
 
@@ -88,7 +98,7 @@ function timeout(ms: number) {
 }
 async function sendMessage(outgoingMessage: string) {
     let { data, error } = await useFetch(
-        `/api/edit/messaging/webhook/${route.params.abbreviation}/test`,
+        `/api/edit/messaging/webhook/${route.params.project}/test`,
         {
             method: "POST",
             body: {
@@ -112,7 +122,7 @@ async function sendMessage(outgoingMessage: string) {
         messages.value.push(incomingMessages[i]);
     }
     if (messagesDiv.value) {
-        await timeout(10); //Wait for DOM to update
+        await timeout(10); //Wait 10 milliseconds for real DOM to update
         messagesDiv.value.scrollTop =
             messagesDiv.value.scrollHeight - messagesDiv.value.clientHeight;
     }

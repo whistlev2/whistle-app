@@ -1,17 +1,26 @@
-import { ActionType, ConditionType, InputType, ProjectType, SectionBodyType, ValidationType, ViewType } from '../../interfaces/types';
-import ProjectModel from '../models/project';
-import { MessagingSessionModelType } from '../models/session';
-import { ReportModelType } from '../models/report';
-import ReportServices from './report';
-import MessagingServices from './messaging';
-import SessionServices from './session';
+import {
+    ActionType,
+    ConditionType,
+    InputType,
+    ProjectType,
+    ReportType,
+    SectionBodyType,
+    SessionType,
+    ValidationType,
+    ViewType
+} from "~~/interfaces/types";
+import ProjectModel from "~~/server/models/project";
+import { MessagingSessionModelType } from "~~/server/models/session";
+import ReportServices from "./report";
+import MessagingServices from "./messaging";
+import SessionServices from "./session";
 
 function getSectionViews(sections: Array<SectionBodyType>): Array<ViewType> {
     let views: Array<ViewType> = [];
     var section;
     for (let i = 0; i < sections.length; i++) {
         section = sections[i];
-        if (section.type === 'section') {
+        if (section.type === "section") {
             views = views.concat(getSectionViews(section.body));
         } else {
             views.push(section);
@@ -24,7 +33,7 @@ function getSectionViews(sections: Array<SectionBodyType>): Array<ViewType> {
 
 function getViewIndex(ref: string, sections: Array<SectionBodyType>): number {
     let views = getSectionViews(sections);
-    if (ref === 'end') {
+    if (ref === "end") {
         return views.length;
     }
     for (let i = 0; i < views.length; i++) {
@@ -38,7 +47,7 @@ function getViewIndex(ref: string, sections: Array<SectionBodyType>): number {
 async function createProject(project: ProjectType) {
     let ret = await ProjectModel.create(project);
     if (!ret) {
-        throw createError('Error creating project');
+        throw createError("Error creating project");
     }
     return getProjectObject(ret);
 }
@@ -48,28 +57,28 @@ async function getProject(projectID: string) {
         let ret = await ProjectModel.findById(projectID);
         return ret;
     } catch (err) {
-        console.error('Error getting project'); //TODO: Handle differently
+        console.error("Error getting project"); //TODO: Handle differently
     }
 }
 
-async function getProjectModelFromAbbreviation(abbreviation: string) {
-    let project = await ProjectModel.findOne({ abbreviation: abbreviation });
+async function getProjectModelFromReference(projectRef: string) {
+    let project = await ProjectModel.findOne({ ref: projectRef });
     return project;
 }
 
-async function getProjectFromAbbreviation(abbreviation: string) {
-    let project = await getProjectModelFromAbbreviation(abbreviation);
+async function getProjectFromReference(projectRef: string) {
+    let project = await getProjectModelFromReference(projectRef);
     return getProjectObject(project);
 }
 
 async function updateProject(updatedProject: ProjectType) {
-    let project = await ProjectModel.findOne({ abbreviation: updatedProject.abbreviation });
+    let project = await ProjectModel.findOne({ ref: updatedProject.ref });
 
     if (!project) {
         throw createError({
             statusCode: 404,
-            message: 'Not found - project not found'
-        })
+            message: "Not found - project not found"
+        });
     }
 
     project.set(updatedProject);
@@ -77,19 +86,19 @@ async function updateProject(updatedProject: ProjectType) {
     return getProjectObject(project);
 }
 
-async function deleteProjectFromAbbreviation(abbreviation: string) {
-    let project = await ProjectModel.findOneAndDelete({ abbreviation: abbreviation });
+async function deleteProjectFromReference(projectRef: string) {
+    let project = await ProjectModel.findOneAndDelete({ ref: projectRef });
     return getProjectObject(project);
 }
 
 //TODO: Move action/validation/condition logic to session services? or another file?
 function checkValidation(input: string, validation: ValidationType) {
     switch (validation.type) {
-        case 'required':
+        case "required":
             return input.length > 0;
-        case 'regex':
+        case "regex":
             return true; //TODO: Implement
-        case 'is':
+        case "is":
             return true; //TODO: Implement
         default:
             return false;
@@ -105,7 +114,7 @@ function validateInput(input: string, definition: InputType) {
         }
     }
     switch (definition.type) {
-        case 'multiple':
+        case "multiple":
             //TODO: Handle differently for web - could parse response before calling this function
             if (definition.allowOther) {
                 return {
@@ -118,7 +127,10 @@ function validateInput(input: string, definition: InputType) {
                     let selections = MessagingServices.parseMultiple(input);
                     var option;
                     for (let i = 0; i < selections.length; i++) {
-                        option = MessagingServices.parseOption(selections[i], definition.options).toLowerCase();
+                        option = MessagingServices.parseOption(
+                            selections[i],
+                            definition.options
+                        ).toLowerCase();
                         if (definition.options) {
                             if (definition.options.includes(option)) {
                                 parsedOptions.push(option);
@@ -130,7 +142,10 @@ function validateInput(input: string, definition: InputType) {
                         }
                     }
                 } else {
-                    let option = MessagingServices.parseOption(input, definition.options).toLowerCase();
+                    let option = MessagingServices.parseOption(
+                        input,
+                        definition.options
+                    ).toLowerCase();
                     if (definition.options) {
                         if (definition.options.includes(option)) {
                             parsedOptions = [option];
@@ -144,7 +159,7 @@ function validateInput(input: string, definition: InputType) {
             }
             return {
                 valid: true,
-                parsedOptions: parsedOptions.join(';')
+                parsedOptions: parsedOptions.join(";")
             };
         default:
             return {
@@ -153,21 +168,52 @@ function validateInput(input: string, definition: InputType) {
     }
 }
 
-async function performAction(action: ActionType, input: string, session: MessagingSessionModelType) {
+async function performAction(
+    action: ActionType,
+    input: string,
+    session: MessagingSessionModelType,
+    view?: ViewType
+) {
     switch (action.operation) {
-        case 'set':
+        case "set":
+            //TODO: Validate arguments
             //TODO: Implement replace functionality
             //TODO: Add overwrite/clear functionality
-            await ReportServices.addToField(session.current, action.arguments[0], input);
+            if (session.activeReport) {
+                await ReportServices.addToField(
+                    session.activeReport,
+                    action.arguments[0],
+                    input
+                );
+            } else {
+                let report: ReportType = {
+                    fields: {},
+                    test: session.test,
+                    timestamp: new Date(),
+                    projectRef: session.project.ref,
+                    tags: []
+                };
+                report.fields[action.arguments[0]] = {
+                    value: input,
+                    view: view
+                };
+                let updatedReport = await ReportServices.createReport(report);
+                //TODO: Handle errors differently
+                if (updatedReport) {
+                    session.activeReport = updatedReport._id;
+                    session.reports.push(updatedReport._id);
+                    SessionServices.updateSession(session._id, session);
+                }
+            }
             break;
-        case 'jump':
+        case "jump":
             let newCursor = getViewIndex(input, session.project.sections);
             if (newCursor >= 0) {
                 session.cursor = newCursor;
                 SessionServices.updateSession(session._id, session);
             }
             break;
-        case 'send':
+        case "send":
             return {
                 messages: [action.arguments[0]]
             };
@@ -179,16 +225,35 @@ async function performAction(action: ActionType, input: string, session: Messagi
     };
 }
 
-function meetsCondition(condition: ConditionType, report: ReportModelType): boolean {
+function meetsCondition(
+    condition: ConditionType,
+    session: SessionType
+): boolean {
     //TODO: Handle errors
     try {
         switch (condition.operation) {
-            case 'equals':
-                return report.fields[condition.arguments[0]].value === condition.arguments[1];
-            case 'contains':
-                return condition.arguments[1].split(';').includes(report.fields[condition.arguments[0]].value);
-            case 'includes':
-                return report.fields[condition.arguments[0]].value.split(';').includes(condition.arguments[1]);
+            case "equals":
+                if (!session.fields) {
+                    return false;
+                }
+                return (
+                    session.fields[condition.arguments[0]].value ===
+                    condition.arguments[1]
+                );
+            case "contains":
+                if (!session.fields) {
+                    return false;
+                }
+                return condition.arguments[1]
+                    .split(";")
+                    .includes(session.fields[condition.arguments[0]].value);
+            case "includes":
+                if (!session.fields) {
+                    return false;
+                }
+                return session.fields[condition.arguments[0]].value
+                    .split(";")
+                    .includes(condition.arguments[1]);
             default:
                 return false;
         }
@@ -197,9 +262,12 @@ function meetsCondition(condition: ConditionType, report: ReportModelType): bool
     }
 }
 
-function meetsAllConditions(conditions: Array<ConditionType>, report: ReportModelType) {
+function meetsAllConditions(
+    conditions: Array<ConditionType>,
+    session: SessionType
+) {
     for (let i = 0; i < conditions.length; i++) {
-        if (!meetsCondition(conditions[i], report)) {
+        if (!meetsCondition(conditions[i], session)) {
             return false;
         }
     }
@@ -208,27 +276,25 @@ function meetsAllConditions(conditions: Array<ConditionType>, report: ReportMode
 
 function getViewText(view: ViewType) {
     switch (view.type) {
-        case 'text':
+        case "text":
             return view.body.contents;
-        case 'custom':
+        case "custom":
             return view.body.contents; //TODO: Implement
         default:
-            return '';
+            return "";
     }
 }
 
-function getProjectObject(project: ProjectType | null) : ProjectType | null {
+function getProjectObject(project: ProjectType | null): ProjectType | null {
     if (!project) {
         return null;
     }
     return {
         title: project.title,
         sections: project.sections,
-        abbreviation: project.abbreviation,
+        ref: project.ref,
         type: project.type,
-        published: project.published,
-        settings: project.settings,
-        finalView: project.finalView
+        settings: project.settings
     };
 }
 
@@ -236,10 +302,10 @@ export default {
     createProject,
     getSectionViews,
     getProject,
-    getProjectModelFromAbbreviation,
-    getProjectFromAbbreviation,
+    getProjectModelFromReference,
+    getProjectFromReference,
     updateProject,
-    deleteProjectFromAbbreviation,
+    deleteProjectFromReference,
     validateInput,
     performAction,
     meetsAllConditions,

@@ -1,20 +1,14 @@
 //const { MessagingResponse } = require('twilio').twiml;
 import Twilio from "twilio";
 const { MessagingResponse } = Twilio.twiml;
-import {
-    SectionBodyType,
-    InputType,
-    MessageType,
-    TextBodyType,
-    ViewType,
-    ProjectType
-} from "../../interfaces/types/index";
+import { InputType, MessageType } from "~~/interfaces/types/index";
 import SessionServices from "./session";
 import ProjectServices from "./project";
-import { MessagingSessionModelType, SessionModelType } from "../models/session";
-import { ProjectModelType } from "../models/project";
-import ReportServices from "./report";
-import { BooleanSchema } from "joi";
+import {
+    MessagingSessionModelType,
+    SessionModelType
+} from "~~/server/models/session";
+import { ProjectModelType } from "~~/server/models/project";
 import { H3Event } from "h3";
 function getLastPromptInput(messages: Array<MessageType>): InputType | null {
     var message;
@@ -53,17 +47,13 @@ async function getNextMessages(
 ): Promise<{ messages: Array<string>; sessionCompleted: boolean }> {
     //TODO: make sure session updates correctly
     let views = ProjectServices.getSectionViews(session.project.sections);
-    let report = await ReportServices.getReport(session.current);
     let messages: Array<string> = [];
-    if (!report) {
-        console.error("Report not found");
-        throw createError("Report not found");
-    }
+
     let showMessage = false;
     for (let i = session.cursor; i < views.length; i++) {
         showMessage = await ProjectServices.meetsAllConditions(
             views[i].show,
-            report
+            session
         );
         session.cursor++;
         if (showMessage) {
@@ -86,10 +76,12 @@ async function getNextMessages(
             }
         }
     }
-    session.messages.push(session.project.finalView);
+    session.messages.push(session.project.settings.finalView);
     await SessionServices.updateSession(session._id, session);
 
-    messages.push(ProjectServices.getViewText(session.project.finalView));
+    messages.push(
+        ProjectServices.getViewText(session.project.settings.finalView)
+    );
     return {
         messages,
         sessionCompleted: true
@@ -117,6 +109,7 @@ async function processResponse(
             ProjectServices.performAction(actions[i], message, session)
         );
     }
+    //TODO: Some action combinations might need to be performed in a specific order
     let effects = await Promise.all(actionPromises);
     for (let i = 0; i < effects.length; i++) {
         if (effects[i].messages) {
@@ -150,8 +143,10 @@ async function handleMessage(
                 message,
                 session
             );
+            session.messages.push(message);
             session.messages = session.messages.concat(messages);
             await SessionServices.updateSession(session._id, session);
+            //TODO: Consider how keyword can affect flow - e.g. what if the keyword's action is to send a view with an input?
             return {
                 messages: formatTwiml(messages),
                 sessionCompleted: false
@@ -160,6 +155,7 @@ async function handleMessage(
             let input = getLastPromptInput(session.messages);
             session.messages.push(message);
             SessionServices.updateSession(session._id, session);
+            //By not awaiting, we cannot detect if the session was updated
             let nextMessages: Array<string> = [];
 
             if (input) {
@@ -182,9 +178,9 @@ async function handleMessage(
             } else {
                 //TODO: Concatenate message onto start message field
                 // Race condition - already started session, but user sent another message before response
-                console.info("Race condition");
-                ReportServices.addToField(
-                    session.current,
+                console.info("Messaging race condition");
+                SessionServices.addToField(
+                    session._id,
                     "startMessage",
                     message
                 );
@@ -219,28 +215,17 @@ async function startSession(
     test: boolean
 ) {
     //Note: when starting a session, keywords are not checked
-    console.log(`Creating ${test ? "test" : "real"} session`);
-    let report = await ReportServices.createReport({
+    let session = await SessionServices.createSession({
+        reports: [],
+        test: test,
+        project: project,
+        messages: [message, project.sections[0]],
+        cursor: 0,
         fields: {
             startMessage: {
                 value: message
             }
-        },
-        test: test,
-        timestamp: new Date(),
-        project: project._id,
-        tags: []
-    });
-    if (!report) {
-        console.error("Report not created");
-        throw createError("Report not created");
-    }
-    let session = await SessionServices.createSession({
-        active: [report._id],
-        current: report._id,
-        project: project,
-        messages: [message, project.sections[0]],
-        cursor: 0
+        }
     });
 
     if (!session) {
@@ -292,15 +277,15 @@ function parseOption(option: string, options: Array<string>): string {
 function getWebhookHandler(test: boolean) {
     return async function (event: H3Event) {
         const incomingMessage = await readBody(event);
-        const abbreviation = event.context.params?.abbreviation;
-        if (!abbreviation) {
+        const projectRef = event.context.params?.project;
+        if (!projectRef) {
             throw createError({
                 statusCode: 400,
-                message: "Bad request - Missing project abbreviation"
+                message: "Bad request - Missing project reference"
             });
         }
-        let project = await ProjectServices.getProjectModelFromAbbreviation(
-            abbreviation
+        let project = await ProjectServices.getProjectModelFromReference(
+            projectRef
         );
         if (!project) {
             throw createError({
@@ -345,6 +330,7 @@ function getWebhookHandler(test: boolean) {
             setCookie(event, "session", "");
         } else {
             setCookie(event, "session", sessionInfo.sessionID);
+            //TODO: Change to not use Mongo ID as session ID
         }
         return sessionInfo.message;
     };
