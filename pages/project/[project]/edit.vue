@@ -1,6 +1,6 @@
 <template>
     <h1>Project Editor - {{ project.title }}</h1>
-    <EditSections :sections="project.sections" />
+    <EditSections :project="project" />
 </template>
 
 <script lang="ts" setup>
