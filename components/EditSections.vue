@@ -15,6 +15,7 @@
                     :section="section"
                     @expand="expandSection(section)"
                 />
+                <!-- TODO: Put all view types in same component -->
                 <EditTextView
                     v-else-if="section.type == 'text'"
                     :view="section"
@@ -40,6 +41,7 @@ const props = defineProps(["project"]);
 const project = ref(props.project as ProjectType);
 const activeSections: Ref<Array<SectionBodyType>> = ref(project.value.sections);
 const sectionPath: Ref<string[]> = ref([]);
+const emit = defineEmits(["update"]);
 
 function expandSection(section: SectionType) {
     sectionPath.value.push(section.ref);
@@ -48,6 +50,7 @@ function expandSection(section: SectionType) {
 
 function updateSection(index: number, value: ViewType) {
     activeSections.value[index] = value;
+    emit("update", activeSections.value);
 }
 
 function goToPath(path: string[]) {

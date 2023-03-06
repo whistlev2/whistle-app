@@ -2,7 +2,8 @@ import {
     SectionBodyType,
     WebSettingsType,
     MessagingSettingsType,
-    ProjectType
+    ProjectType,
+    MessagingProjectType
 } from "~~/interfaces/types";
 
 class Project implements ProjectType {
@@ -35,29 +36,23 @@ class Project implements ProjectType {
     }
 }
 
-let settings: MessagingSettingsType = {
-    published: true,
-    keywords: {
-        options: {
-            operation: "send",
-            arguments: ["this is a options message"]
-        },
-        help: {
-            operation: "send",
-            arguments: ["this is a help message"]
+class MessagingProject extends Project implements MessagingProjectType {
+    settings: MessagingSettingsType;
+    type: "sms" | "mms";
+
+    constructor(project: any) {
+        if (project.type !== "sms" && project.type !== "mms") {
+            throw createError("Invalid project type");
         }
-    },
-    errorMessage: "Something went wrong, sorry",
-    parsingErrorMessage: "Couldn't undertand your response - please try again",
-    finalView: {
-        ref: "lastMessage",
-        type: "text",
-        body: {
-            contents:
-                "Thank you for filing a report with HfRN. We are sorry you have experienced this, what you have told us will help us to prevent other people from experiencing this and help us to work towards accountability for those responsible."
-        },
-        show: []
+        if (!project.settings.keywords) {
+            throw createError("Invalid settings");
+        }
+        super(project);
+        this.type = project.type;
+        this.settings = project.settings;
     }
-};
+}
 
 export default Project;
+
+export { Project, MessagingProject };
