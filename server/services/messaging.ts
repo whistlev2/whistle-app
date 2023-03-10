@@ -284,6 +284,7 @@ function getWebhookHandler(test: boolean) {
                 message: "Bad request - Missing project reference"
             });
         }
+        //TODO: Handle test/live projects
         let project = await ProjectServices.getProjectModelFromReference(
             projectRef
         );
