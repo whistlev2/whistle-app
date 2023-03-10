@@ -2,6 +2,6 @@
     <div>{{ view }}</div>
 </template>
 <script setup lang="ts">
-const { view } = defineProps(["view"]);
+const { view, refs } = defineProps(["view", "refs"]);
 </script>
 <style scoped></style>

@@ -7,29 +7,35 @@
     />
     <EditSections
         :project="project"
-        @update="(_: any, value) => updateProject(value)"
+        :refs="refs"
+        @update="(value: SectionBodyType[]) => updateSections(value)"
     />
     <EditSettingsModal
         :settings="project.settings"
         ref="settingsModal"
+        :refs="refs"
         @save="saveProject()"
         @update="(_: any, value) => updateProject(value)"
     />
 </template>
 
 <script lang="ts" setup>
+//TODO: Deletes
 //use tabs for each section
 //use VMenu for individual view settings
 //use full screen VDialog for overall settings
 
-import { MessagingProjectType } from "~~/interfaces/types";
-import { MessagingProject } from "~~/utils/project";
+import { MessagingProjectType, SectionBodyType } from "~~/interfaces/types";
+import { MessagingProject, getProjectRefs } from "~~/utils/project"; //TODO: Establish why these don't auto-import
 const route = useRoute();
 const projectRef = Array.isArray(route.params.project)
     ? route.params.project[0]
     : route.params.project;
 const project = ref(await getProject(projectRef));
-const settingsModal = ref<HTMLElement | null>(null);
+const settingsModal = ref<
+    (HTMLElement & { showSettings: (value: boolean) => void }) | null
+>(null);
+const refs = computed(() => getAllRefs());
 
 if (!project.value) {
     throw createError({
@@ -39,7 +45,6 @@ if (!project.value) {
 }
 
 function showSettings(value: boolean) {
-    console.log("SHOW");
     settingsModal.value?.showSettings(value);
 }
 
@@ -73,5 +78,18 @@ async function getProject(
 
 function updateProject(value: MessagingProjectType) {
     project.value = value;
+}
+
+function updateSections(sections: SectionBodyType[]) {
+    if (!project.value) return; //TODO: Handle error
+    project.value.sections = sections;
+}
+
+function getAllRefs(): string[] {
+    if (project.value) {
+        return getProjectRefs(project.value);
+    } else {
+        return [""];
+    }
 }
 </script>

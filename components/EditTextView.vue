@@ -1,5 +1,5 @@
 <template>
-    <v-card>
+    <v-card color="#d0ecf2">
         <v-form>
             <v-card-subtitle>
                 <v-row cols="12" md="6">
@@ -9,17 +9,32 @@
             </v-card-subtitle>
             <v-row cols="12" md="6">
                 <v-col cols="10" md="10">
-                    <v-text-field
+                    <v-textarea
                         v-model="view.body.contents"
                         label="Contents"
                         auto-grow
-                    ></v-text-field>
+                        @update:model-value="($event) => emitToParent()"
+                    ></v-textarea>
+                </v-col>
+            </v-row>
+            <v-row>
+                <v-col cols="12" md="6">
+                    <h4>Show Conditions:</h4>
+                </v-col>
+            </v-row>
+            <v-row cols="12" md="6">
+                <v-col cols="10" md="10">
+                    <EditConditions
+                        :conditions="view.show"
+                        :refs="refs"
+                        @update="updateConditions"
+                    />
                 </v-col>
             </v-row>
             <v-card-actions>
                 <v-switch
                     v-model="hasInput"
-                    @update:model-value="updateHasInput()"
+                    @update:model-value="emitToParent()"
                     label="Has input field"
                 />
                 <v-spacer />
@@ -32,48 +47,53 @@
             <v-expand-transition>
                 <div v-show="showInput">
                     <v-divider></v-divider>
-                    <div>
-                        <v-row cols="12" md="6">
-                            <v-col cols="12" md="6">
-                                Type: {{ view.input?.type }}
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                Actions: {{ view.input?.actions }}
-                            </v-col>
-                            <v-col cols="12" md="6">
-                                Validations: {{ view.input?.validations }}
-                            </v-col>
-                        </v-row>
-                    </div>
+                    <EditInput
+                        :input="view.input"
+                        :refs="refs"
+                        @update="(value: InputType) => updateInput(value)"
+                    />
                 </div>
             </v-expand-transition>
         </v-form>
     </v-card>
 </template>
 <script setup lang="ts">
-import { ViewType } from "~~/interfaces/types";
+import { ConditionType, InputType, ViewType } from "~~/interfaces/types";
 
-const { view } = defineProps<{
+const props = defineProps<{
     view: ViewType;
+    refs: string[];
 }>();
+const view: Ref<ViewType> = ref(props.view);
 const emit = defineEmits(["update"]);
-const hasInput = ref(view.input != null);
+const hasInput = ref(view.value.input != null);
 const showInput = ref(false);
+
+function updateInput(input: InputType) {
+    view.value.input = input;
+    emitToParent();
+}
+
 function updateHasInput() {
     if (hasInput) {
-        view.input = {
+        view.value.input = {
             type: "text",
             actions: [],
             validations: []
         };
     } else {
-        view.input = undefined;
+        view.value.input = undefined;
     }
     emitToParent();
 }
 
+function updateConditions(conditions: ConditionType[]) {
+    view.value.show = conditions;
+    emitToParent();
+}
+
 function emitToParent() {
-    emit("update", view);
+    emit("update", view.value);
 }
 </script>
 <style scoped></style>

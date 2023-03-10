@@ -5,20 +5,21 @@
         :scrim="false"
         transition="dialog-bottom-transition"
     >
-        <v-card>
-            <v-toolbar dark color="primary">
-                <v-btn icon dark @click="showSettings(false)">
-                    <v-icon>mdi-close</v-icon>
+        <!-- TODO: Fix hydration issue -->
+        <v-toolbar dark>
+            <v-btn icon dark @click="showSettings(false)">
+                <v-icon>mdi-close</v-icon>
+            </v-btn>
+            <v-toolbar-title>Settings</v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+                <v-btn variant="text" @click="saveSettings()">
+                    <v-icon>mdi-content-save</v-icon> Save
                 </v-btn>
-                <v-toolbar-title>Settings</v-toolbar-title>
-                <v-spacer></v-spacer>
-                <v-toolbar-items>
-                    <v-btn variant="text" @click="saveSettings()">
-                        <v-icon>mdi-content-save</v-icon> Save
-                    </v-btn>
-                </v-toolbar-items>
-            </v-toolbar>
-            <v-form>
+            </v-toolbar-items>
+        </v-toolbar>
+        <v-form>
+            <v-card>
                 <v-row>
                     <v-col cols="12" md="6">
                         <v-switch
@@ -47,24 +48,25 @@
                         <EditTextView
                             v-if="settings.finalView.type == 'text'"
                             :view="settings.finalView"
+                            :refs="refs"
                             @update="(_: any, value: ViewType) => updateFinalView(value)"
                         />
                     </v-col>
                 </v-row>
-            </v-form>
-        </v-card>
+            </v-card>
+        </v-form>
     </v-dialog>
 </template>
 
 <script setup lang="ts">
 import { MessagingSettingsType, ViewType } from "~~/interfaces/types";
-const { settings } = defineProps<{
+const { settings, refs } = defineProps<{
     settings: MessagingSettingsType;
+    refs: string[];
 }>();
 const show = ref(false);
 const emit = defineEmits(["save", "update"]);
 const showSettings = (value: boolean) => {
-    console.log("SHOWING");
     show.value = value;
 };
 

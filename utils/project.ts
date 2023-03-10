@@ -3,7 +3,8 @@ import {
     WebSettingsType,
     MessagingSettingsType,
     ProjectType,
-    MessagingProjectType
+    MessagingProjectType,
+    ActionType
 } from "~~/interfaces/types";
 
 class Project implements ProjectType {
@@ -53,6 +54,45 @@ class MessagingProject extends Project implements MessagingProjectType {
     }
 }
 
+function getActionsRefs(actions: ActionType[]): string[] {
+    let refs: string[] = [];
+    for (let i = 0; i < actions.length; i++) {
+        switch (actions[i].operation) {
+            case "set":
+                refs.push(actions[i].arguments[0]);
+                break;
+        }
+    }
+    return refs;
+}
+
+function getSectionRefs(section: SectionBodyType): string[] {
+    let refs: string[] = [];
+    switch (section.type) {
+        case "section":
+            for (let i = 0; i < section.body.length; i++) {
+                refs = refs.concat(getSectionRefs(section.body[i]));
+            }
+            break;
+        case "text":
+        case "custom":
+            if (section.input) {
+                refs = refs.concat(getActionsRefs(section.input.actions));
+            }
+            break;
+    }
+    return refs;
+}
+
+function getProjectRefs(project: ProjectType): string[] {
+    if (!project.sections) return [];
+    let refs: string[] = [];
+    for (let i = 0; i < project.sections.length; i++) {
+        refs = refs.concat(getSectionRefs(project.sections[i]));
+    }
+    return refs;
+}
+
 export default Project;
 
-export { Project, MessagingProject };
+export { Project, MessagingProject, getProjectRefs };
