@@ -4,7 +4,7 @@ import FieldType from "./field";
 type MessageType = ViewType | string;
 
 interface SessionType {
-    reports: Schema.Types.ObjectId[]; //rename to reports
+    reports: Schema.Types.ObjectId[];
     activeReport?: Schema.Types.ObjectId;
     expires?: Date;
     project: ProjectType;
